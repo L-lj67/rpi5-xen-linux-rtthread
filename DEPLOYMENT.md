@@ -1,5 +1,7 @@
 # Reproducing the tested architecture
 
+For an operator-to-agent task prompt, host/SDK setup, checkpoint handoff, media readback and complete acceptance workflow, start with [AGENT_WORKFLOW.zh-CN.md](AGENT_WORKFLOW.zh-CN.md). This guide supplies the underlying build and integration reference.
+
 This is a source-level reproduction path for a Raspberry Pi 5 with 4 GiB of RAM. It is **not** a one-click installer. The scripts stage source changes and assemble a new regular image file; they never select or write a physical disk. Follow upstream Xen-Troops build instructions for the base images.
 
 ## Inputs and prerequisites
@@ -32,6 +34,7 @@ cd /path/to/xen-troops
 moulin rpi5.yaml --DOMD_ROOT usb --ENABLE_HDMI yes
 ninja fetch-dom0 fetch-domd yocto/build-domd/conf/moulin.conf
 cd /path/to/this-repository
+python3 -m pip install -r /path/to/xen-troops/zephyr/zephyr/scripts/requirements-base.txt
 python3 dom0-extension/apply_patch.py /path/to/xen-troops/zephyr/zephyr-dom0-xt
 ```
 

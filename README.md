@@ -2,6 +2,8 @@
 
 An experimental asymmetric multiprocessing setup on one Raspberry Pi 5:
 
+**Deploy with an agent:** start with [the recommended workflow and copyable task prompt / 推荐工作流与可复制任务说明](AGENT_WORKFLOW.zh-CN.md). It covers host setup, source builds, operator handoffs, media readback, keyboard-free SSH, IPC, service recovery and power-cycle acceptance. This project is distributed as source; users build their own images with their own SSH public key.
+
 **Release status:** this repository contains the port, integration scripts and a source-level [deployment guide](DEPLOYMENT.md) ([中文操作入口](QUICKSTART.zh-CN.md)). Another developer or agent can follow the pinned inputs and [agent handoff](AGENTS.md), provide their own SSH public key, build images and run automated target checks. Source staging, guest/Dom0 compilation, a cache-assisted Yocto rootfs build and image assembly have been exercised; see [verification evidence](evidence/reproduction-checks.md). A clean-host rebuild and cold boot of newly generated media remain unverified. Ready-to-flash images and private credentials are not published.
 
 | Domain | CPU affinity | Memory | Role |

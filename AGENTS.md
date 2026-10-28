@@ -2,6 +2,8 @@
 
 Goal: reproduce the Raspberry Pi 5 (4 GiB) Xen + Zephyr Dom0 + Yocto Linux DomD + RT-Thread DomU architecture described in [DEPLOYMENT.md](DEPLOYMENT.md). Read that guide and [ARCHITECTURE.md](ARCHITECTURE.md) before changing build inputs.
 
+Follow [AGENT_WORKFLOW.zh-CN.md](AGENT_WORKFLOW.zh-CN.md) for host preparation, the operator task prompt, all deployment stages and recovery checkpoints. It defines the full reproduction target without requiring a prebuilt image. Record this repository's commit as well as upstream commits, and keep a local session/STATE.md with evidence and the next executable step. Continue through routine failures and retain caches; request human intervention only when actual credentials, privilege, media authorization or physical actions are required.
+
 ## Fixed inputs and boundaries
 
 - Xen-Troops Raspberry Pi 5: `008a70e2c6de0f3aeb872497ccea8c0c181e8198`.
@@ -15,7 +17,7 @@ Goal: reproduce the Raspberry Pi 5 (4 GiB) Xen + Zephyr Dom0 + Yocto Linux DomD 
 
 1. Record tool versions, available space, board RAM and upstream commit IDs. Keep existing Yocto downloads and sstate caches.
 2. Build `rtt-xen/build.py` from the pinned RT-Thread tree. Keep the resulting `build-xen/rtthread-xen.bin` outside Git.
-3. Run `integration/apply_xen_troops.py ... --check` on a clean pinned Xen-Troops checkout, then apply it and `dom0-extension/apply_patch.py`. Review the diff and set `RPI_XEN_SSH_PUBKEY` in private `local.conf`.
+3. Run `integration/apply_xen_troops.py ... --check` on a clean pinned Xen-Troops checkout, then apply it. Generate Ninja with Moulin, fetch upstream dependencies and create Yocto config as documented; install the fetched Zephyr build requirements, then run `dom0-extension/apply_patch.py`. Review the diff and set `RPI_XEN_SSH_PUBKEY` in private `local.conf`.
 4. Follow Xen-Troops build instructions for Xen, Zephyr Dom0 and Yocto DomD. Check that `rpi-xen-access` and `rtt-guest-support` are included and build successfully. Preserve logs locally, without publishing secrets.
 5. Run `integration/configure_domd_dtbo.py` on the generated overlay. Run `integration/assemble_full_image.py` to create a separate `full-rtt.img`; check GPT, FAT readback and matching `rootfs.img`.
 6. After verified SD and USB imaging, use SSH public-key login to collect boot evidence. Verify Xen domains, resources and CPU placement, RTT guest start, advancing control counts, zero FP failures and bidirectional bridge data. Power cycle and repeat. Check actual camera, GPIO, display and AI workloads separately before claiming competition readiness.

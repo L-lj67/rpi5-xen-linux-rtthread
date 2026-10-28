@@ -1,5 +1,7 @@
 # 中文部署入口
 
+**推荐先读 [Agent 部署工作流](AGENT_WORKFLOW.zh-CN.md)**：包含可直接复制给 agent 的任务说明、主机工具/SDK 安装、分阶段通过标准、写盘操作交接和断点恢复。本页提供精简构建命令；完整复现应继续完成工作流中的 IPC、服务恢复与整机冷启动验收。
+
 适用目标：4 GiB 树莓派 5，SD 卡启动 Xen，USB 存放 Linux 根文件系统。Linux 负责设备、应用和 AI；RT-Thread 分配 256 MiB、独占 CPU 3 的硬亲和性，运行周期控制与共享内存通信。目前控制对象为仿真对象，真实摄像头、屏幕和执行器需要后续接入。
 
 首次构建需要 Linux 构建环境、较多磁盘空间和下载时间。Windows 用户使用 WSL2，Yocto 工作目录放在 Linux 文件系统内（例如 `~/rpi5-rtt-work`），保留下载和 sstate 缓存。WSL 中看到的虚拟磁盘剩余量不能代替 Windows 系统盘实际剩余量。
@@ -37,6 +39,7 @@ cd ~/rpi5-rtt-work/xen-troops
 moulin rpi5.yaml --DOMD_ROOT usb --ENABLE_HDMI yes
 ninja fetch-dom0 fetch-domd yocto/build-domd/conf/moulin.conf
 cd ../port
+python3 -m pip install -r ../xen-troops/zephyr/zephyr/scripts/requirements-base.txt
 python3 dom0-extension/apply_patch.py ../xen-troops/zephyr/zephyr-dom0-xt
 ```
 
