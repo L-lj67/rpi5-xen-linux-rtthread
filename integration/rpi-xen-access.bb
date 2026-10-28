@@ -8,16 +8,32 @@ RDEPENDS:${PN} = "openssh-sshd openssh-keygen openssh-sftp-server"
 RPI_XEN_SSH_PUBKEY ?= ""
 RPI_XEN_STATIC_ADDR ?= "192.168.77.2/24"
 
-do_install() {
-    test -n "${RPI_XEN_SSH_PUBKEY}" || bbfatal "Set RPI_XEN_SSH_PUBKEY to your own public key in local.conf"
-    install -d -m 0755 ${D}${sysconfdir}/ssh/authorized_keys
-    printf '%s\n' "${RPI_XEN_SSH_PUBKEY}" > ${D}${sysconfdir}/ssh/authorized_keys/root
-    chmod 0600 ${D}${sysconfdir}/ssh/authorized_keys/root
-    install -d -m 0755 ${D}${sysconfdir}/ssh/sshd_config.d
-    install -m 0644 ${WORKDIR}/10-rpi-xen.conf ${D}${sysconfdir}/ssh/sshd_config.d/10-rpi-xen.conf
-    install -d -m 0755 ${D}${sysconfdir}/systemd/network
-    sed "s|@ADDRESS@|${RPI_XEN_STATIC_ADDR}|g" ${WORKDIR}/10-rpi-direct.network > ${D}${sysconfdir}/systemd/network/10-rpi-direct.network
-    chmod 0644 ${D}${sysconfdir}/systemd/network/10-rpi-direct.network
+python do_install() {
+    import base64
+    import ipaddress
+    import os
+    from pathlib import Path
+    import shutil
+
+    key = d.getVar('RPI_XEN_SSH_PUBKEY').strip()
+    fields = key.split()
+    if len(fields) < 2 or fields[0] not in ('ssh-ed25519', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ecdsa-sha2-nistp384', 'ecdsa-sha2-nistp521') or '\n' in key or '\r' in key:
+        bb.fatal('Set RPI_XEN_SSH_PUBKEY to one valid SSH public key in private local.conf')
+    try:
+        base64.b64decode(fields[1], validate=True)
+        address = str(ipaddress.IPv4Interface(d.getVar('RPI_XEN_STATIC_ADDR')))
+    except ValueError:
+        bb.fatal('Invalid SSH public-key encoding or RPI_XEN_STATIC_ADDR')
+    config = Path(d.getVar('D') + d.getVar('sysconfdir'))
+    work = Path(d.getVar('WORKDIR'))
+    for relative in ('ssh/authorized_keys', 'ssh/sshd_config.d', 'systemd/network'):
+        (config / relative).mkdir(parents=True, exist_ok=True)
+    target = config / 'ssh/authorized_keys/root'
+    target.write_text(' '.join(fields[:2]) + '\n')
+    os.chmod(target, 0o600)
+    shutil.copyfile(work / '10-rpi-xen.conf', config / 'ssh/sshd_config.d/10-rpi-xen.conf')
+    network = (work / '10-rpi-direct.network').read_text().replace('@ADDRESS@', address)
+    (config / 'systemd/network/10-rpi-direct.network').write_text(network)
 }
 
 FILES:${PN} = "${sysconfdir}/ssh ${sysconfdir}/systemd/network/10-rpi-direct.network"

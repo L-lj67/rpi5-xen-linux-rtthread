@@ -23,12 +23,14 @@ planned = []
 
 def update(path, replacements):
     source = root / path
-    data = (subprocess.check_output(['git', '-C', str(root), 'show', 'HEAD:' + str(path).replace('\\', '/')], text=True)
-            if args.check else source.read_text())
+    original = subprocess.check_output(['git', '-C', str(root), 'show', 'HEAD:' + str(path).replace('\\', '/')], text=True)
+    data = original
     for old, new in replacements:
         if old not in data:
             parser.error(f'{path}: expected pinned source marker is missing; no changes written')
         data = data.replace(old, new, 1)
+    if not args.check and source.read_text() not in (original, data):
+        parser.error(f'{path}: contains unrelated edits; use a clean pinned checkout; no changes written')
     planned.append((source, data))
 
 yaml = 'rpi5.yaml'
@@ -72,4 +74,7 @@ for source in (here.parent / 'LICENSE', here.parent / 'rtt-xen/linux_bridge.c',
                here.parent / 'rtt-xen/control_shared.h', here.parent / 'rtt-xen/guest_service.py',
                here.parent / 'rtt-xen/rtt-guest.service'):
     shutil.copy2(source, support / 'files' / source.name)
+pseudo = root / 'layers/xt-prod-devel-rpi5-domd/recipes-devtools/pseudo'
+pseudo.mkdir(parents=True, exist_ok=True)
+shutil.copy2(here / 'pseudo_%.bbappend', pseudo / 'pseudo_%.bbappend')
 print('Staged Xen-Troops source changes. Set your own public key in local.conf before building.')

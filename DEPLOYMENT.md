@@ -23,17 +23,26 @@ On a **clean checkout** of the pinned Xen-Troops revision, first validate and th
 ```sh
 python3 integration/apply_xen_troops.py /path/to/xen-troops build-xen/rtthread-xen.bin --check
 python3 integration/apply_xen_troops.py /path/to/xen-troops build-xen/rtthread-xen.bin
+```
+
+The first script adds `rtt.bin` to the FAT image inputs, removes the unused Linux PV test guest, adds the public-key SSH and RTT service recipes plus the tested pseudo 1.9.11 host fix, and sets the tested 4 GiB USB rootfs size. It backs up edited source files and accepts reruns of its own changes. Fetch the upstream dependencies before applying the Dom0 patch (the Dom0 checkout does not exist immediately after cloning Xen-Troops):
+
+```sh
+cd /path/to/xen-troops
+moulin rpi5.yaml --DOMD_ROOT usb --ENABLE_HDMI yes
+ninja fetch-dom0 fetch-domd yocto/build-domd/conf/moulin.conf
+cd /path/to/this-repository
 python3 dom0-extension/apply_patch.py /path/to/xen-troops/zephyr/zephyr-dom0-xt
 ```
 
-The first script adds `rtt.bin` to the FAT image inputs, removes the unused Linux PV test guest, adds the public-key SSH and RTT service recipes, and sets the tested 4 GiB USB rootfs size. It backs up edited source files. The second patches the Zephyr Dom0 management code. Before the Yocto build, add your own public key to its private `local.conf`, for example:
+Before the Yocto build, add your own public key to its private `yocto/build-domd/conf/local.conf`, for example:
 
 ```conf
 RPI_XEN_SSH_PUBKEY = "ssh-ed25519 YOUR_OWN_PUBLIC_KEY"
 RPI_XEN_STATIC_ADDR = "192.168.77.2/24"
 ```
 
-Use your real public key, not the example. Build Dom0 with the three Kconfig options from `dom0-extension/remote-admin.conf`: dummy shell backend, 8192-byte buffer and CRC support. The Xen-Troops YAML staging script also inserts these options. Rebuild the full Xen/Zephyr/Yocto artifacts using the upstream build workflow; this repository does not vendor their large dependency trees.
+Use your real public key, not the example. Build Dom0 with the three Kconfig options from `dom0-extension/remote-admin.conf`: dummy shell backend, 8192-byte buffer and CRC support. The Xen-Troops YAML staging script inserts these options. From the Xen-Troops directory run `ninja full.img rootfs.img`. This repository does not vendor the large dependency trees. For a limited host, set `BB_NUMBER_THREADS = "4"`, `PARALLEL_MAKE = "-j4"` and `INHERIT += "rm_work"` in private local.conf. Preserve downloads and sstate caches between retries; on WSL monitor Windows host space separately from the virtual Linux disk.
 
 ## Resource overlay and image assembly
 
@@ -56,10 +65,19 @@ The script checks the GPT and reads back each copied FAT file against its SHA-25
 
 ## Linux service and verification
 
-`integration/rtt-guest-support.bb`, staged by `apply_xen_troops.py`, compiles the Linux bridge with Yocto's target compiler, installs `guest_service.py` and enables `rtt-guest.service`. The Linux image must also supply Python 3, Xenstore tools, `/dev/xen/gntdev`, OpenSSH and systemd. Verify these in the generated rootfs and on the booted target; the new recipe has not yet passed an independent clean Yocto rebuild.
+`integration/rtt-guest-support.bb`, staged by `apply_xen_troops.py`, compiles the Linux bridge with Yocto's target compiler, installs `guest_service.py` and enables `rtt-guest.service`. The Linux image must also supply Python 3, Xenstore tools, `/dev/xen/gntdev`, OpenSSH and systemd. The public recipes and resulting Linux rootfs passed a cache-assisted Yocto build; see [the verification record](evidence/reproduction-checks.md). This was not a clean-host rebuild.
+
+After establishing SSH host trust on your isolated link, run the read-only acceptance script from your PC:
+
+```sh
+python3 integration/verify_target.py --ssh root@192.168.77.2 \
+  --identity /path/to/your/private-key --output acceptance.json
+```
+
+Use `--known-hosts /path/to/existing/known_hosts` if your connection uses a separate trust file. The script requires an already trusted host key, prints JSON and exits nonzero on a failed check. It checks resources, service enablement, pin-operation results, advancing control counts and FP errors. It does not upload software, reboot or change domain state. Its report records the target clock separately, because an offline board may have the wrong time.
 
 Acceptance checks on the target should confirm Xen and Linux boot, SSH public-key login, 2 GiB/3-vCPU Linux resources, Dom0 management permissions, a 256 MiB/1-vCPU RTT domain pinned to CPU 3, advancing RTT control counts and zero FP errors in the shared-memory snapshot. Repeat a bounded Linux load test and measure end-to-end device timing with your actual peripherals. A full power-cycle test remains necessary for a new build.
 
 ## Publication boundary
 
-The original complete SD and USB images are not mirrored here. They contain machine-specific SSH/network setup, have not been audited as public images, and are much larger than a suitable source release. The project also excludes raw build logs, personal design documents and private credentials. Source staging and image assembly are provided, but an independent clean build, fresh-media flash and cold-boot acceptance run have not yet been completed from this public checkout.
+The original complete SD and USB images are not mirrored here. They contain machine-specific SSH/network setup, have not been audited as public images, and are much larger than a suitable source release. The project also excludes raw build logs, personal design documents and private credentials. Source staging, component/rootfs builds, image assembly and current-target checks have been exercised, but an independent clean-host build, fresh-media flash and cold-boot acceptance run have not yet been completed from this public checkout.

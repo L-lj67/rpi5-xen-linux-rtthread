@@ -2,7 +2,7 @@
 
 An experimental asymmetric multiprocessing setup on one Raspberry Pi 5:
 
-**Release status:** this repository contains the port, integration scripts and a source-level [deployment guide](DEPLOYMENT.md). It does not contain ready-to-flash SD/USB images or a one-command installer. Another developer or agent can follow the pinned build inputs and [agent handoff](AGENTS.md), but must provide their own SSH public key, build and verify the images, check board memory and physical media, and validate boot. The original tested media and private credentials are not published. The newly added Yocto recipes and image assembly flow have not yet passed an independent clean rebuild.
+**Release status:** this repository contains the port, integration scripts and a source-level [deployment guide](DEPLOYMENT.md) ([中文操作入口](QUICKSTART.zh-CN.md)). Another developer or agent can follow the pinned inputs and [agent handoff](AGENTS.md), provide their own SSH public key, build images and run automated target checks. Source staging, guest/Dom0 compilation, a cache-assisted Yocto rootfs build and image assembly have been exercised; see [verification evidence](evidence/reproduction-checks.md). A clean-host rebuild and cold boot of newly generated media remain unverified. Ready-to-flash images and private credentials are not published.
 
 | Domain | CPU affinity | Memory | Role |
 |---|---|---:|---|
