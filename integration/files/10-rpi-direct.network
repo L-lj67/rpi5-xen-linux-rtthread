@@ -1,0 +1,8 @@
+[Match]
+Name=end0 eth0
+
+[Network]
+Address=@ADDRESS@
+DHCP=no
+LinkLocalAddressing=no
+IPv6AcceptRA=no

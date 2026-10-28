@@ -2,6 +2,8 @@
 
 An experimental asymmetric multiprocessing setup on one Raspberry Pi 5:
 
+**Release status:** this repository contains the port, integration scripts and a source-level [deployment guide](DEPLOYMENT.md). It does not contain ready-to-flash SD/USB images or a one-command installer. Another developer or agent can follow the pinned build inputs and [agent handoff](AGENTS.md), but must provide their own SSH public key, build and verify the images, check board memory and physical media, and validate boot. The original tested media and private credentials are not published. The newly added Yocto recipes and image assembly flow have not yet passed an independent clean rebuild.
+
 | Domain | CPU affinity | Memory | Role |
 |---|---|---:|---|
 | Zephyr Dom0 | CPUs 0–2 | 128 MiB | Xen domain management |
@@ -16,6 +18,7 @@ The RT-Thread guest uses the real RT-Thread 5.4.0 kernel source, not a bare-meta
 
 - `rtt-xen/`: guest port, Linux shared-memory bridge, systemd guest launcher, load-test tool.
 - `dom0-extension/`: restricted Zephyr Dom0 management extension and patch script.
+- `integration/`: parameterized Xen-Troops/Yocto source staging, rootfs recipes, DTBO configuration and regular-file image assembly tools, without a personal key.
 - `evidence/`: compact measured test summary.
 
 The large Yocto/Zephyr/RT-Thread source trees, built images, SSH keys, local addresses and private project documents are deliberately omitted. See the [architecture and validation notes](ARCHITECTURE.md) for boundaries and measured results.
@@ -43,7 +46,7 @@ The `dom0-extension/apply_patch.py /path/to/zephyr-dom0-xt` script patches a che
 
 For the tested 2 GiB Linux resource map, the DomD device-tree overlay uses `memory = <0 0x200000>` (KiB), `cpus = <3>`, and static memory banks `(0x50000000, 0x78000000)` plus `(0x20000000, 0x08000000)`. These settings require checking the actual board memory map and image layout before deployment. They must not be copied blindly onto another host.
 
-Build `rtt-xen/linux_bridge.c` with the Linux AArch64 cross compiler, then install it at `/root/xen-tests/rtt-linux-bridge` along with `guest_service.py`. Install `rtt-guest.service` into systemd. The service creates the RT-Thread domain, attaches its console, and requires the shared-memory control counter to advance before declaring startup successful. The on-board control client uses the Dom0 Xenstore interface and requires no interactive Pi keyboard.
+The `integration/rtt-guest-support.bb` Yocto recipe builds the Linux bridge and installs `guest_service.py` and `rtt-guest.service` into the rootfs. The service creates the RT-Thread domain, attaches its console, and requires the shared-memory control counter to advance before declaring startup successful. The on-board control client uses the Dom0 Xenstore interface and requires no interactive Pi keyboard. See [DEPLOYMENT.md](DEPLOYMENT.md) for image assembly and acceptance steps.
 
 This is research code intended as an implementation reference. Check the target's Xen/Zephyr APIs, page size, memory map, storage paths, trust model and device tree before using it elsewhere.
 
