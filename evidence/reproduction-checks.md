@@ -13,6 +13,7 @@ These checks used the public port source and clean local checkouts of the pinned
 | Resource-overlay generation | Passed | Linux memory `0 200000`, CPUs `3`, static banks `0 50000000 0 78000000 0 20000000 0 8000000`. |
 | Regular SD-image assembly | Passed | 1,091,567,616-byte image copy; three FAT files read back and SHA-256 matched; independent `sgdisk -v` found no GPT problems. Used the previously verified Dom0 binary for this assembly check. |
 | Automated live target checks | Passed | 12 checks: Xen, Linux domain 1, three Linux vCPUs, grant device, RTT service active/enabled, pin-operation success, domain memory/vCPU resources, advancing control count and zero FP errors. Tested against the existing deployed system, not the newly built rootfs. |
+| Original deployed-media power-cycle recovery | Passed | Original SD/USB were returned without rewriting and the board powered on again. SSH was reachable with 54.63 s uptime; RTT service was already active with Result=success and ExecMainStatus=0, entering active state at 12.095 s after boot. All 12 automated checks passed without manually starting RTT. The guest was dynamically assigned domain 2; control count advanced 5,261 to 5,291 across the snapshot interval, with zero FP errors and zero reported deadline misses. |
 | New-media cold boot | Not tested | Deferred; no claim that the new artifacts have booted on hardware. |
 | Independent clean-host full build | Not tested | Existing upstream dependencies and caches were reused. |
 
