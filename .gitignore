@@ -1,0 +1,12 @@
+build-xen/
+build-qemu/
+*.bin
+*.elf
+*.img
+*.log
+*.map
+*.pyc
+__pycache__/
+.venv/
+authorized_keys
+id_*

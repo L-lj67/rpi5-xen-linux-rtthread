@@ -1,0 +1,19 @@
+{
+  "samples": 1196,
+  "elapsed_seconds": 60.02116589100001,
+  "controls": 5997,
+  "approx_hz": 99.9147535869381,
+  "final": {
+    "control": 10703,
+    "input_seq": 2392,
+    "pan": -30,
+    "tilt": -2,
+    "compute_us": 0,
+    "max_compute_us": 3,
+    "max_late_us": 78,
+    "deadline_misses": 0,
+    "fp_failures": 0
+  },
+  "linux_workers": 3,
+  "linux_memory_mib": 192
+}

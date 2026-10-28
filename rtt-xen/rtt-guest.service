@@ -1,0 +1,14 @@
+[Unit]
+Description=RT-Thread Xen guest with shared-memory readiness check
+After=network.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 /root/xen-tests/guest_service.py start
+ExecStop=/usr/bin/python3 /root/xen-tests/guest_service.py stop
+TimeoutStartSec=150
+TimeoutStopSec=35
+
+[Install]
+WantedBy=multi-user.target
